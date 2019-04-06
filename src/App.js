@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { TOKEN, API_URL } from "./config";
+import Species from "./Species";
+import Mammals from "./Mammals";
 
 const App = () => {
     // crSpecies is initialized as an empty array
@@ -45,9 +47,9 @@ const App = () => {
                         const species = result;
                         console.log(species);
 
-                        const filteredMammals = species.filter(
-                            s => s.class_name === "MAMMALIA"
-                        );
+                        const filteredMammals = species
+                            .filter(s => s.class_name === "MAMMALIA")
+                            .slice(0, 10);
                         console.log(filteredMammals);
                         setMammals(filteredMammals);
 
@@ -77,12 +79,13 @@ const App = () => {
 
     // return <div>Hello there!</div>;
     return (
-        <div>
-            {crSpecies.map(c => (
-                <div {...c} key={c.taxonid}>
-                    {c.scientific_name}
-                </div>
-            ))}
+        <div className="container my-5">
+            <h2 className="mb-5">
+                Critically endangered species from {region}:
+            </h2>
+            <Species species={crSpecies} />
+            <h2 className="my-5">Mammals from {region}:</h2>
+            <Mammals mammals={mammals} />
         </div>
     );
 };
