@@ -3,6 +3,7 @@ import axios from "axios";
 import { TOKEN, API_URL } from "./config";
 import Species from "./Species";
 import Mammals from "./Mammals";
+import { randomElemFromArray, limitResults } from "./utils";
 
 const App = () => {
     // crSpecies is initialized as an empty array
@@ -21,60 +22,49 @@ const App = () => {
     const [mammals, setMammals] = useState([]);
 
     useEffect(() => {
-        axios
-            .get(`${API_URL}/region/list?token=${TOKEN}`)
-            .then(({ data }) => {
-                const randomRegion =
-                    data.results[
-                        Math.floor(Math.random() * data.results.length)
-                    ];
+        (async () => {
+            const allRegions = await axios.get(
+                `${API_URL}/region/list?token=${TOKEN}`
+            );
+            const randomRegion = randomElemFromArray(allRegions.data.results);
+            console.log(randomRegion);
 
-                console.log(randomRegion);
-                setRegion(randomRegion.name);
-                return randomRegion.identifier;
-            })
-            .then(randomRegionID => {
-                console.log(randomRegionID);
-                axios
-                    .get(
-                        `${API_URL}/species/region/${randomRegionID}/page/0?token=${TOKEN}`
-                    )
+            setRegion(randomRegion.name);
 
-                    .then(({ data: { result } }) => {
-                        // setSpecies(result);
-                        // console.log(result);
+            const speciesFromRegion = await axios.get(
+                `${API_URL}/species/region/${
+                    randomRegion.identifier
+                }/page/0?token=${TOKEN}`
+            );
+            console.log(speciesFromRegion);
 
-                        const species = result;
-                        console.log(species);
+            const species = speciesFromRegion.data.result;
 
-                        const filteredMammals = species
-                            .filter(s => s.class_name === "MAMMALIA")
-                            .slice(0, 10);
-                        console.log(filteredMammals);
-                        setMammals(filteredMammals);
+            const filteredMammals = limitResults(
+                species.filter(s => s.class_name === "MAMMALIA")
+            );
+            console.log(filteredMammals);
+            setMammals(filteredMammals);
 
-                        const criticallyEndangered = species
-                            .filter(s => s.category === "CR")
-                            .slice(0, 10);
-                        console.log(criticallyEndangered);
+            const criticallyEndangered = limitResults(
+                species.filter(s => s.category === "CR")
+            );
+            console.log(criticallyEndangered);
 
-                        const promises = criticallyEndangered.map(c =>
-                            axios
-                                .get(
-                                    `${API_URL}/measures/species/id/${
-                                        c.taxonid
-                                    }?token=${TOKEN}`
-                                )
-                                .then(({ data: { result } }) => ({
-                                    ...c,
-                                    con_measures: result
-                                        .map(r => r.title)
-                                        .join(", ")
-                                }))
-                        );
-                        Promise.all(promises).then(setcrSpecies);
-                    });
+            const promises = criticallyEndangered.map(async c => {
+                const measures = await axios.get(
+                    `${API_URL}/measures/species/id/${c.taxonid}?token=${TOKEN}`
+                );
+                return {
+                    ...c,
+                    con_measures: measures.data.result
+                        .map(r => r.title)
+                        .join(", ")
+                };
             });
+
+            Promise.all(promises).then(setcrSpecies);
+        })();
     }, []);
 
     // return <div>Hello there!</div>;
