@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { TOKEN, API_URL } from "./config";
 import Species from "./Species";
 import Mammals from "./Mammals";
-import { randomElemFromArray, limitResults, LOADING, SUCCESS } from "./utils";
-import Loading from "./Loading";
-import ErrorDisplay from "./ErrorDisplay";
-import Warning from "./Warning";
+import {
+    limitResults,
+    LOADING,
+    SUCCESS,
+    getRandomRegion,
+    getSpecies,
+    getConMeasures,
+    CON_MEASURES_FETCH_ERROR
+} from "./utils";
+import { renderBasedOnReqState, renderWarningOrData } from "./renderUtils";
 
 const App = () => {
     // crSpecies is initialized as an empty array
@@ -28,90 +32,57 @@ const App = () => {
     const [crSpeciesReqState, setCrSpeciesReqState] = useState(LOADING);
     const [mammalsReqState, setmammalsReqState] = useState(LOADING);
 
-    useEffect(() => {
-        (async () => {
-            try {
-                var allRegions = await axios.get(
-                    `${API_URL}/region/list?token=${TOKEN}`
-                );
-            } catch {
-                const errorMsg = "Error. Regions could not be fetched.";
-                setCrSpeciesReqState(new Error(errorMsg));
-                setmammalsReqState(new Error(errorMsg));
-                return;
-            }
-
-            const randomRegion = randomElemFromArray(allRegions.data.results);
-            console.log(randomRegion);
-
-            setRegion(randomRegion.name);
-
-            try {
-                var speciesFromRegion = await axios.get(
-                    `${API_URL}/species/region/${
-                        randomRegion.identifier
-                    }/page/0?token=${TOKEN}`
-                );
-                console.log(speciesFromRegion);
-            } catch {
-                const errorMsg = "Error. Species could not be fetched.";
-                setCrSpeciesReqState(new Error(errorMsg));
-                setmammalsReqState(new Error(errorMsg));
-                return;
-            }
-
-            const species = speciesFromRegion.data.result;
-
-            const filteredMammals = limitResults(
-                species.filter(s => s.class_name === "MAMMALIA")
-            );
-            console.log(filteredMammals);
-            setMammals(filteredMammals);
-            setmammalsReqState(SUCCESS);
-
-            const criticallyEndangered = limitResults(
-                species.filter(s => s.category === "CR")
-            );
-            console.log(criticallyEndangered);
-
-            const promises = criticallyEndangered.map(async c => {
-                const measures = await axios.get(
-                    `${API_URL}/measures/species/id/${c.taxonid}?token=${TOKEN}`
-                );
-                return {
-                    ...c,
-                    con_measures: measures.data.result
-                        .map(r => r.title)
-                        .join(", ")
-                };
-            });
-
-            Promise.all(promises)
-                .then(crSpecies => {
-                    setcrSpecies(crSpecies);
-                    setCrSpeciesReqState(SUCCESS);
-                })
-                .catch(() => {
-                    const errorMsg =
-                        "Error. Conservation measures could not be fetched.";
-                    setCrSpeciesReqState(new Error(errorMsg));
-                });
-        })();
-    }, []);
-
-    const renderBasedOnReqState = (component, reqState) => {
-        switch (reqState) {
-            case LOADING:
-                return <Loading />;
-            case SUCCESS:
-                return component;
-            default:
-                return <ErrorDisplay errorMsg={reqState.message} />;
+    // Error handling logic
+    const handleError = error => {
+        if (error === CON_MEASURES_FETCH_ERROR) {
+            setCrSpeciesReqState(CON_MEASURES_FETCH_ERROR);
+        } else {
+            setCrSpeciesReqState(error);
+            setmammalsReqState(error);
         }
     };
 
-    const renderWarningOrData = (component, dataArray, warningMsg) =>
-        dataArray.length > 0 ? component : <Warning warningMsg={warningMsg} />;
+    useEffect(() => {
+        const fn = async () => {
+            try {
+                // First, we need a random region
+                const { name, identifier } = await getRandomRegion();
+
+                // We set its name onto the app state so that we can render it
+                setRegion(name);
+
+                // We get all the species from our random region
+                const species = await getSpecies(identifier);
+
+                // Filter it down to the mammals
+                const filteredMammals = limitResults(
+                    species.filter(s => s.class_name === "MAMMALIA")
+                );
+
+                // We set the mammals state to the filtered down mammals
+                // And set the reqState to indicate that the request
+                // was successful
+                setMammals(filteredMammals);
+                setmammalsReqState(SUCCESS);
+
+                // We filter the species array down to the critically
+                // endangered species and set the respective states
+                // as we did before with the mammals
+                // but not before we also fetch the conservation measures
+                // for said species
+                const criticallyEndangered = limitResults(
+                    species.filter(s => s.category === "CR")
+                );
+                const withMeasures = await getConMeasures(criticallyEndangered);
+                setcrSpecies(withMeasures);
+                setCrSpeciesReqState(SUCCESS);
+            } catch (error) {
+                handleError(error);
+            }
+        };
+
+        fn();
+    }, []);
 
     return (
         <div className="container my-5">

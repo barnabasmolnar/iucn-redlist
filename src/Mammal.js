@@ -1,10 +1,10 @@
 import React from "react";
 
-const Mammals = props => (
+const Mammal = ({ scientific_name, category }) => (
     <li className="list-group-item d-flex justify-content-between align-items-center">
-        {props.scientific_name}
-        <span className="badge badge-primary badge-pill">{props.category}</span>
+        {scientific_name}
+        <span className="badge badge-primary badge-pill">{category}</span>
     </li>
 );
 
-export default Mammals;
+export default Mammal;

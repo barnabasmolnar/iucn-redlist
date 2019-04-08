@@ -1,9 +1,9 @@
 import React from "react";
 
-const SpeciesRow = props => (
+const SpeciesRow = ({scientific_name, con_measures}) => (
     <tr>
-        <td>{props.scientific_name}</td>
-        <td>{props.con_measures ? props.con_measures : "None found"}</td>
+        <td>{scientific_name}</td>
+        <td>{con_measures ? con_measures : "None found"}</td>
     </tr>
 );
 
