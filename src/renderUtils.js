@@ -20,5 +20,5 @@ export const renderBasedOnReqState = (component, reqState) => {
 
 // Returns a warning component if there is no data to display
 // Otherwise it returns a component
-export const renderWarningOrData = (component, dataArray, warningMsg) =>
-    dataArray.length > 0 ? component : <Warning warningMsg={warningMsg} />;
+export const renderWarningOrData = (component, data, warningMsg) =>
+    data.length > 0 ? component : <Warning warningMsg={warningMsg} />;

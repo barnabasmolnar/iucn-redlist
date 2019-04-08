@@ -41,18 +41,10 @@ export const getSpecies = regionId =>
         SPECIES_FETCH_ERROR
     ).then(({ result }) => result);
 
-// Given a species, it returns a new species object
-// with the conservation measures for that specific
-// species tacked onto it
-const getConMeasure = s =>
+// Given a species, it returns the conservation measures
+// for that specific species
+export const getConMeasure = taxonid =>
     getAPIResponse(
-        `/measures/species/id/${s.taxonid}`,
+        `/measures/species/id/${taxonid}`,
         CON_MEASURES_FETCH_ERROR
-    ).then(({ result }) => ({
-        ...s,
-        con_measures: result.map(r => r.title).join(", ")
-    }));
-
-// Same as above, for all species
-export const getConMeasures = species =>
-    Promise.all(species.map(getConMeasure));
+    ).then(({ result }) => result.map(r => r.title).join(", "));

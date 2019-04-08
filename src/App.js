@@ -6,9 +6,7 @@ import {
     LOADING,
     SUCCESS,
     getRandomRegion,
-    getSpecies,
-    getConMeasures,
-    CON_MEASURES_FETCH_ERROR
+    getSpecies
 } from "./utils";
 import { renderBasedOnReqState, renderWarningOrData } from "./renderUtils";
 
@@ -29,18 +27,7 @@ const App = () => {
     const [mammals, setMammals] = useState([]);
 
     // reqState can either be LOADING, SUCCESS or an error object
-    const [crSpeciesReqState, setCrSpeciesReqState] = useState(LOADING);
-    const [mammalsReqState, setmammalsReqState] = useState(LOADING);
-
-    // Error handling logic
-    const handleError = error => {
-        if (error === CON_MEASURES_FETCH_ERROR) {
-            setCrSpeciesReqState(CON_MEASURES_FETCH_ERROR);
-        } else {
-            setCrSpeciesReqState(error);
-            setmammalsReqState(error);
-        }
-    };
+    const [reqState, setReqState] = useState(LOADING);
 
     useEffect(() => {
         const fn = async () => {
@@ -60,24 +47,21 @@ const App = () => {
                 );
 
                 // We set the mammals state to the filtered down mammals
-                // And set the reqState to indicate that the request
-                // was successful
                 setMammals(filteredMammals);
-                setmammalsReqState(SUCCESS);
 
                 // We filter the species array down to the critically
-                // endangered species and set the respective states
+                // endangered species and set the respective state
                 // as we did before with the mammals
-                // but not before we also fetch the conservation measures
-                // for said species
                 const criticallyEndangered = limitResults(
                     species.filter(s => s.category === "CR")
                 );
-                const withMeasures = await getConMeasures(criticallyEndangered);
-                setcrSpecies(withMeasures);
-                setCrSpeciesReqState(SUCCESS);
+                setcrSpecies(criticallyEndangered);
+
+                // And finally we set the reqState to indicate that
+                // the request has been successfully made
+                setReqState(SUCCESS);
             } catch (error) {
-                handleError(error);
+                setReqState(error);
             }
         };
 
@@ -95,7 +79,7 @@ const App = () => {
                     crSpecies,
                     "No critically endangered species could be found from the region."
                 ),
-                crSpeciesReqState
+                reqState
             )}
             <h2 className="my-5">Mammals from {region}:</h2>
             {renderBasedOnReqState(
@@ -104,7 +88,7 @@ const App = () => {
                     mammals,
                     "No mammals could be found from the region."
                 ),
-                mammalsReqState
+                reqState
             )}
         </div>
     );
