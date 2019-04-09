@@ -18,12 +18,16 @@ export const CON_MEASURES_FETCH_ERROR =
     "Error. Conservation measures could not be fetched.";
 
 // Returns the data object of an axios response
-// Or returns a custom error
+// Or returns an error
+// If the token is invalid, the API returns a 200 OK response
+// with the following: {"message":"Token not valid!"}
 const getAPIResponse = (endpoint, error) =>
     axios
         .get(`${API_URL}${endpoint}?token=${TOKEN}`)
-        .then(({ data }) => data)
-        .catch(() => Promise.reject(error));
+        .then(
+            ({ data }) => (data.message ? Promise.reject(data.message) : data),
+            () => Promise.reject(error)
+        );
 
 // Returns all regions
 const getRegions = () =>

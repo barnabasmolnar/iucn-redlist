@@ -8,7 +8,7 @@ import {
     getRandomRegion,
     getSpecies
 } from "./utils";
-import { renderBasedOnReqState, renderWarningOrData } from "./renderUtils";
+import { renderBasedOnReqState } from "./renderUtils";
 
 const App = () => {
     // crSpecies is initialized as an empty array
@@ -74,20 +74,16 @@ const App = () => {
                 Critically endangered species from {region}:
             </h2>
             {renderBasedOnReqState(
-                renderWarningOrData(
-                    <Species species={crSpecies} />,
-                    crSpecies,
-                    "No critically endangered species could be found from the region."
-                ),
+                <Species species={crSpecies} />,
+                crSpecies,
+                "No critically endangered species could be found from the region.",
                 reqState
             )}
             <h2 className="my-5">Mammals from {region}:</h2>
             {renderBasedOnReqState(
-                renderWarningOrData(
-                    <Mammals mammals={mammals} />,
-                    mammals,
-                    "No mammals could be found from the region."
-                ),
+                <Mammals mammals={mammals} />,
+                mammals,
+                "No mammals could be found from the region.",
                 reqState
             )}
         </div>

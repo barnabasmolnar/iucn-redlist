@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { LOADING, getConMeasure, SUCCESS } from "./utils";
-import { renderBasedOnReqState, renderWarningOrData } from "./renderUtils";
+import { renderBasedOnReqState } from "./renderUtils";
 
 const SpeciesRow = ({ scientific_name, taxonid }) => {
     const [measure, setMeasure] = useState("");
@@ -25,7 +25,9 @@ const SpeciesRow = ({ scientific_name, taxonid }) => {
             <td>{scientific_name}</td>
             <td>
                 {renderBasedOnReqState(
-                    renderWarningOrData(measure, measure, "None found."),
+                    measure,
+                    measure,
+                    "None found.",
                     reqState
                 )}
             </td>

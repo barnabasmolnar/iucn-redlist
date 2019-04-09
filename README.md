@@ -1,3 +1,32 @@
+# BimSPOT API Exercise
+
+## A couple of notes on open questions and implementation details
+
+### Hooks vs Class based components
+In this exercise I decided to use [React Hooks](https://reactjs.org/docs/hooks-intro.html) instead of the more "traditional" way of doing things with class based stateful components. I like to keep up with new developments and experiment with new things, so using Hooks seemed like a good idea. Should you prefer class based components, however, I would be happy to refactor the relevant portion of the code.
+
+### Amount of data displayed
+The number of items fetched from the API, even when filtered down to the requirements given in the exercise brief, can easily reach the hundreds if not thousands. Displaying all that data on the page didn't seem like the smartest of ideas, so I decided on adding a configurable limit. In the **config.js** file, there is a DISPLAY_LIMIT option with the value of 25. That seemed like a reasonable default limit. Should you want to display all the results, you just need to set this option to null or any other falsey value.
+
+It wasn't an explicit requirement here, so I chose not to implement it but in a production ready app I would probably make use of some form of pagination. The config option mentioned above could easily be reused in a pagination system as well: a single page would display as many results.
+
+### Item details
+Each item (that is, each critically endangered species and each mammal) has around 10 or more props. Since there were no specific requirements which ones to display here, I used my own judgement. In the case of critically endangered species, I used a table display with one column being the scientific name (which I assume is unique), the other the conservation measures fetched in addition to each item. In the case of mammals, I simply used a list display with the scientific name once again, and as a nice addition, the category/status (critically endangered, vulnerable, etc) of the animal as a badge/pill.
+
+In a more complex, production ready app, one might pull in a router and make each item a link pointing to a details page of said item where all the props could be displayed.
+
+---
+
+To run or install the app, refer to the CRA docs below.
+
+You will also need to create a .env file in the project root and create an environmental variable with the name of REACT_APP_API_TOKEN and set its value to your access token of the API:
+
+```env
+REACT_APP_API_TOKEN=yourtoken
+```
+
+---
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
